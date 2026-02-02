@@ -50,7 +50,6 @@
     </nav>
 
     <main class="container mx-auto px-4 py-8">
-        
         <div class="max-w-2xl mx-auto mb-10">
             <div class="relative group">
                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition"></i>
@@ -59,7 +58,7 @@
             </div>
         </div>
 
-        <section id="agenda" class="content-section animate-fade-in">
+        <section id="agenda" class="content-section">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-fit">
                     <h2 class="font-bold text-slate-800 mb-6 flex items-center gap-2">
@@ -77,19 +76,16 @@
                     </form>
                 </div>
                 <div class="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 border-b border-slate-100">
-                                <tr>
-                                    <th class="p-4 text-xs font-bold text-slate-400 uppercase">Paciente</th>
-                                    <th class="p-4 text-xs font-bold text-slate-400 uppercase">Fecha / Hora</th>
-                                    <th class="p-4 text-xs font-bold text-slate-400 uppercase text-center">Gestión</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lista-citas" class="divide-y divide-slate-50">
-                                </tbody>
-                        </table>
-                    </div>
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-100">
+                            <tr>
+                                <th class="p-4 text-xs font-bold text-slate-400 uppercase">Paciente</th>
+                                <th class="p-4 text-xs font-bold text-slate-400 uppercase">Fecha / Hora</th>
+                                <th class="p-4 text-xs font-bold text-slate-400 uppercase text-center">Gestión</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-citas" class="divide-y divide-slate-50"></tbody>
+                    </table>
                 </div>
             </div>
         </section>
@@ -107,18 +103,18 @@
                     <div class="grid md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="text-sm font-bold text-slate-700">Antecedentes Clínicos</label>
-                            <textarea id="historia-antecedentes" class="w-full p-4 border rounded-2xl h-40 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Cirugías, fracturas, enfermedades crónicas..."></textarea>
+                            <textarea id="historia-antecedentes" class="w-full p-4 border rounded-2xl h-40 focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
                         </div>
                         <div class="space-y-2">
                             <label class="text-sm font-bold text-red-600">Alergias y Riesgos</label>
-                            <textarea id="historia-alergias" class="w-full p-4 border border-red-100 bg-red-50 rounded-2xl h-40 focus:ring-2 focus:ring-red-500 outline-none transition" placeholder="Medicamentos, látex, cremas..."></textarea>
+                            <textarea id="historia-alergias" class="w-full p-4 border border-red-100 bg-red-50 rounded-2xl h-40 focus:ring-2 focus:ring-red-500 outline-none transition"></textarea>
                         </div>
                     </div>
                     <div class="bg-slate-900 p-6 rounded-2xl">
-                        <label class="text-sm font-bold text-slate-400 mb-2 block">Notas de Evolución (Sesión Actual)</label>
-                        <textarea id="historia-notas" class="w-full p-4 bg-slate-800 border-none text-white rounded-xl h-44 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Describa el progreso y tratamiento aplicado hoy..."></textarea>
+                        <label class="text-sm font-bold text-slate-400 mb-2 block">Notas de Evolución</label>
+                        <textarea id="historia-notas" class="w-full p-4 bg-slate-800 border-none text-white rounded-xl h-44 focus:ring-2 focus:ring-blue-500 outline-none transition"></textarea>
                     </div>
-                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition shadow-lg shadow-blue-100">Guardar en Historial</button>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 shadow-lg shadow-blue-100">Guardar Historial</button>
                 </form>
             </div>
         </section>
@@ -127,16 +123,34 @@
             <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 text-center">
                 <i class="fas fa-dumbbell text-slate-200 text-6xl mb-4"></i>
                 <h2 class="text-2xl font-bold mb-2">Portal de Ejercicios</h2>
-                <p class="text-slate-500 mb-6">Seleccione un paciente para ver su rutina de casa.</p>
+                <p class="text-slate-500 mb-6">Seleccione un paciente para ver su rutina.</p>
                 <select id="select-paciente-ejercicio" class="w-full p-3 border rounded-xl mb-4"></select>
                 <div id="rutina-container" class="text-left space-y-3 mt-6"></div>
             </div>
         </section>
-
     </main>
 
     <script type="module">
-        
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, push, onValue, set, get, child, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // CONFIGURACIÓN DE TU FIREBASE (Sacada de tu imagen anterior)
+        const firebaseConfig = {
+            apiKey: "AIzaSyACLjDV3KYxO2hW55KCSEUDouwFf9iCXpw",
+            authDomain: "physioconnect-ffa6a.firebaseapp.com",
+            databaseURL: "https://physioconnect-ffa6a-default-rtdb.firebaseio.com",
+            projectId: "physioconnect-ffa6a",
+            storageBucket: "physioconnect-ffa6a.firebasestorage.app",
+            messagingSenderId: "539307501202",
+            appId: "1:539307501202:web:47795db318b1f95d48b84b",
+            measurementId: "G-17JL5VGEDB"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        const citasRef = ref(database, 'citas');
 
         // --- SISTEMA DE AUTENTICACIÓN ---
         let isLoginMode = true;
@@ -158,7 +172,7 @@
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-password').value;
             const action = isLoginMode ? signInWithEmailAndPassword(auth, email, pass) : createUserWithEmailAndPassword(auth, email, pass);
-            action.catch(err => { errorMsg.innerText = err.message; errorMsg.classList.remove('hidden'); });
+            action.catch(err => { errorMsg.innerText = "Error: " + err.message; errorMsg.classList.remove('hidden'); });
         });
 
         onAuthStateChanged(auth, (user) => {
@@ -188,12 +202,11 @@
             const lista = document.getElementById('lista-citas');
             const selector = document.getElementById('select-paciente-ejercicio');
             lista.innerHTML = ''; selector.innerHTML = '';
-            
             if (snapshot.exists()) {
                 const data = snapshot.val();
                 Object.entries(data).reverse().forEach(([id, cita]) => {
                     lista.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition border-b border-slate-50 last:border-none">
+                        <tr class="hover:bg-slate-50 transition border-b border-slate-50">
                             <td class="p-4"><span class="font-bold text-slate-800">${cita.paciente}</span><br><span class="text-xs text-blue-500 font-bold">${cita.servicio}</span></td>
                             <td class="p-4 text-sm text-slate-500">${new Date(cita.fecha).toLocaleString()}</td>
                             <td class="p-4 flex justify-center gap-4">
@@ -201,21 +214,18 @@
                                 <button onclick="generarFactura('${cita.paciente}', '${cita.servicio}')" class="text-blue-500 hover:scale-125 transition"><i class="fas fa-file-invoice-dollar"></i></button>
                                 <button onclick="eliminarCita('${id}')" class="text-slate-300 hover:text-red-500 transition"><i class="fas fa-trash-alt"></i></button>
                             </td>
-                        </tr>
-                    `;
+                        </tr>`;
                     selector.innerHTML += `<option value="${cita.paciente}">${cita.paciente}</option>`;
                 });
             }
         });
 
-        // --- HISTORIAS CLÍNICAS ---
         window.abrirHistoria = (nombre) => {
             document.getElementById('historia-nombre').value = nombre;
             get(child(ref(database), `historias/${nombre}`)).then((snap) => {
                 const d = snap.exists() ? snap.val() : {};
                 document.getElementById('historia-antecedentes').value = d.antecedentes || "";
                 document.getElementById('historia-alergias').value = d.alergias || "";
-                document.getElementById('historia-notas').value = "";
                 showSection('historia-clinica');
             });
         };
@@ -231,27 +241,17 @@
             }).then(() => { alert("Expediente Actualizado"); showSection('agenda'); });
         });
 
-        // --- BUSCADOR ---
-        document.getElementById('buscador-global').addEventListener('keyup', (e) => {
-            const q = e.target.value.toLowerCase();
-            document.querySelectorAll('#lista-citas tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? "" : "none");
-        });
-
-        // --- FACTURACIÓN PDF ---
         window.generarFactura = (p, s) => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.setFont("helvetica", "bold"); doc.text("RECIBO FISIOTERAPIA", 20, 20);
-            doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+            doc.text("RECIBO FISIOTERAPIA", 20, 20);
             doc.text(`Paciente: ${p}`, 20, 40);
-            doc.text(`Concepto: ${s}`, 20, 50);
+            doc.text(`Servicio: ${s}`, 20, 50);
             doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 60);
-            doc.text(`Total: 50.00 EUR`, 20, 80);
             doc.save(`Factura_${p}.pdf`);
         };
 
         window.eliminarCita = (id) => confirm("¿Eliminar cita?") && remove(ref(database, `citas/${id}`));
     </script>
 </body>
-
 </html>
