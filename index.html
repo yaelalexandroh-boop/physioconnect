@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysioConnect Pro | Gestión Clínica Total</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-[100]">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md mx-4">
+            <div class="text-center mb-8">
+                <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
+                    <i class="fas fa-hand-holding-medical text-white text-3xl"></i>
+                </div>
+                <h2 id="auth-title" class="text-2xl font-bold text-slate-800">Iniciar Sesión</h2>
+                <p id="auth-subtitle" class="text-slate-500 text-sm">Panel de Control Fisioterapéutico</p>
+            </div>
+            <form id="auth-form" class="space-y-4">
+                <input type="email" id="auth-email" placeholder="Correo electrónico" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition" required>
+                <input type="password" id="auth-password" placeholder="Contraseña" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition" required>
+                <button type="submit" id="auth-button" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200">Entrar</button>
+            </form>
+            <div class="mt-6 text-center">
+                <button id="toggle-auth" class="text-blue-600 text-sm font-semibold hover:underline">¿No tienes cuenta? Regístrate aquí</button>
+            </div>
+            <p id="auth-error" class="text-red-500 text-xs mt-4 hidden text-center bg-red-50 p-2 rounded border border-red-100 italic"></p>
+        </div>
+    </div>
+
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 p-1.5 rounded-lg">
+                    <i class="fas fa-wave-square text-white text-sm"></i>
+                </div>
+                <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-blue-500">PhysioConnect</h1>
+            </div>
+            <div class="hidden md:flex items-center space-x-8 text-sm font-bold text-slate-600">
+                <button onclick="showSection('agenda')" class="hover:text-blue-600 transition">AGENDA</button>
+                <button onclick="showSection('pacientes')" class="hover:text-blue-600 transition">EJERCICIOS</button>
+            </div>
+            <button onclick="logout()" class="text-slate-400 hover:text-red-500 transition px-2 py-1">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8">
+        
+        <div class="max-w-2xl mx-auto mb-10">
+            <div class="relative group">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition"></i>
+                <input type="text" id="buscador-global" placeholder="Buscar por nombre del paciente..." 
+                       class="w-full pl-12 pr-4 py-4 bg-white rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-blue-500 transition">
+            </div>
+        </div>
+
+        <section id="agenda" class="content-section animate-fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-fit">
+                    <h2 class="font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <i class="fas fa-plus-circle text-blue-500"></i> Nueva Cita
+                    </h2>
+                    <form id="appointment-form" class="space-y-4">
+                        <input type="text" id="paciente-nombre" placeholder="Nombre completo" class="w-full p-3 border rounded-xl outline-none" required>
+                        <input type="datetime-local" id="cita-fecha" class="w-full p-3 border rounded-xl outline-none" required>
+                        <select id="servicio" class="w-full p-3 border rounded-xl outline-none bg-white">
+                            <option value="Fisioterapia Deportiva">Fisioterapia Deportiva</option>
+                            <option value="Drenaje Linfático">Drenaje Linfático</option>
+                            <option value="Rehabilitación">Rehabilitación</option>
+                        </select>
+                        <button type="submit" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition">Confirmar</button>
+                    </form>
+                </div>
+                <div class="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 border-b border-slate-100">
+                                <tr>
+                                    <th class="p-4 text-xs font-bold text-slate-400 uppercase">Paciente</th>
+                                    <th class="p-4 text-xs font-bold text-slate-400 uppercase">Fecha / Hora</th>
+                                    <th class="p-4 text-xs font-bold text-slate-400 uppercase text-center">Gestión</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-citas" class="divide-y divide-slate-50">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="historia-clinica" class="content-section hidden max-w-4xl mx-auto">
+            <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <span class="text-blue-600 font-bold text-sm uppercase tracking-widest">Expediente Médico</span>
+                        <input type="text" id="historia-nombre" class="block text-3xl font-black text-slate-800 border-none bg-transparent p-0 focus:ring-0" readonly>
+                    </div>
+                    <button onclick="showSection('agenda')" class="text-slate-400 hover:text-slate-600 text-2xl"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="history-form" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-slate-700">Antecedentes Clínicos</label>
+                            <textarea id="historia-antecedentes" class="w-full p-4 border rounded-2xl h-40 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Cirugías, fracturas, enfermedades crónicas..."></textarea>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-red-600">Alergias y Riesgos</label>
+                            <textarea id="historia-alergias" class="w-full p-4 border border-red-100 bg-red-50 rounded-2xl h-40 focus:ring-2 focus:ring-red-500 outline-none transition" placeholder="Medicamentos, látex, cremas..."></textarea>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 p-6 rounded-2xl">
+                        <label class="text-sm font-bold text-slate-400 mb-2 block">Notas de Evolución (Sesión Actual)</label>
+                        <textarea id="historia-notas" class="w-full p-4 bg-slate-800 border-none text-white rounded-xl h-44 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Describa el progreso y tratamiento aplicado hoy..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition shadow-lg shadow-blue-100">Guardar en Historial</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="pacientes" class="content-section hidden max-w-2xl mx-auto">
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 text-center">
+                <i class="fas fa-dumbbell text-slate-200 text-6xl mb-4"></i>
+                <h2 class="text-2xl font-bold mb-2">Portal de Ejercicios</h2>
+                <p class="text-slate-500 mb-6">Seleccione un paciente para ver su rutina de casa.</p>
+                <select id="select-paciente-ejercicio" class="w-full p-3 border rounded-xl mb-4"></select>
+                <div id="rutina-container" class="text-left space-y-3 mt-6"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove, set, get, child } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+
+        // CONFIGURACIÓN DE FIREBASE (PON TUS DATOS AQUÍ)
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            databaseURL: "https://TU_PROYECTO.firebaseio.com",
+            projectId: "TU_PROYECTO",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "TU_ID",
+            appId: "TU_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+        const citasRef = ref(database, "citas");
+
+        // --- SISTEMA DE AUTENTICACIÓN ---
+        let isLoginMode = true;
+        const authForm = document.getElementById('auth-form');
+        const authTitle = document.getElementById('auth-title');
+        const authButton = document.getElementById('auth-button');
+        const toggleBtn = document.getElementById('toggle-auth');
+        const errorMsg = document.getElementById('auth-error');
+
+        toggleBtn.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            authTitle.innerText = isLoginMode ? "Iniciar Sesión" : "Crear Cuenta Nueva";
+            authButton.innerText = isLoginMode ? "Entrar" : "Registrarse";
+            toggleBtn.innerText = isLoginMode ? "¿No tienes cuenta? Regístrate aquí" : "¿Ya tienes cuenta? Inicia sesión";
+        });
+
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            const action = isLoginMode ? signInWithEmailAndPassword(auth, email, pass) : createUserWithEmailAndPassword(auth, email, pass);
+            action.catch(err => { errorMsg.innerText = err.message; errorMsg.classList.remove('hidden'); });
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            document.getElementById('login-screen').classList.toggle('hidden', !!user);
+        });
+
+        window.logout = () => signOut(auth);
+
+        // --- NAVEGACIÓN ---
+        window.showSection = (id) => {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        };
+
+        // --- GESTIÓN DE CITAS ---
+        document.getElementById('appointment-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            push(citasRef, {
+                paciente: document.getElementById('paciente-nombre').value,
+                fecha: document.getElementById('cita-fecha').value,
+                servicio: document.getElementById('servicio').value
+            });
+            e.target.reset();
+        });
+
+        onValue(citasRef, (snapshot) => {
+            const lista = document.getElementById('lista-citas');
+            const selector = document.getElementById('select-paciente-ejercicio');
+            lista.innerHTML = ''; selector.innerHTML = '';
+            
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                Object.entries(data).reverse().forEach(([id, cita]) => {
+                    lista.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition border-b border-slate-50 last:border-none">
+                            <td class="p-4"><span class="font-bold text-slate-800">${cita.paciente}</span><br><span class="text-xs text-blue-500 font-bold">${cita.servicio}</span></td>
+                            <td class="p-4 text-sm text-slate-500">${new Date(cita.fecha).toLocaleString()}</td>
+                            <td class="p-4 flex justify-center gap-4">
+                                <button onclick="abrirHistoria('${cita.paciente}')" class="text-green-500 hover:scale-125 transition"><i class="fas fa-file-medical"></i></button>
+                                <button onclick="generarFactura('${cita.paciente}', '${cita.servicio}')" class="text-blue-500 hover:scale-125 transition"><i class="fas fa-file-invoice-dollar"></i></button>
+                                <button onclick="eliminarCita('${id}')" class="text-slate-300 hover:text-red-500 transition"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                    selector.innerHTML += `<option value="${cita.paciente}">${cita.paciente}</option>`;
+                });
+            }
+        });
+
+        // --- HISTORIAS CLÍNICAS ---
+        window.abrirHistoria = (nombre) => {
+            document.getElementById('historia-nombre').value = nombre;
+            get(child(ref(database), `historias/${nombre}`)).then((snap) => {
+                const d = snap.exists() ? snap.val() : {};
+                document.getElementById('historia-antecedentes').value = d.antecedentes || "";
+                document.getElementById('historia-alergias').value = d.alergias || "";
+                document.getElementById('historia-notas').value = "";
+                showSection('historia-clinica');
+            });
+        };
+
+        document.getElementById('history-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('historia-nombre').value;
+            set(ref(database, `historias/${nombre}`), {
+                antecedentes: document.getElementById('historia-antecedentes').value,
+                alergias: document.getElementById('historia-alergias').value,
+                ultimaNota: document.getElementById('historia-notas').value,
+                fecha: new Date().toISOString()
+            }).then(() => { alert("Expediente Actualizado"); showSection('agenda'); });
+        });
+
+        // --- BUSCADOR ---
+        document.getElementById('buscador-global').addEventListener('keyup', (e) => {
+            const q = e.target.value.toLowerCase();
+            document.querySelectorAll('#lista-citas tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? "" : "none");
+        });
+
+        // --- FACTURACIÓN PDF ---
+        window.generarFactura = (p, s) => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFont("helvetica", "bold"); doc.text("RECIBO FISIOTERAPIA", 20, 20);
+            doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+            doc.text(`Paciente: ${p}`, 20, 40);
+            doc.text(`Concepto: ${s}`, 20, 50);
+            doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 60);
+            doc.text(`Total: 50.00 EUR`, 20, 80);
+            doc.save(`Factura_${p}.pdf`);
+        };
+
+        window.eliminarCita = (id) => confirm("¿Eliminar cita?") && remove(ref(database, `citas/${id}`));
+    </script>
+</body>
+</html>
