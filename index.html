@@ -131,28 +131,25 @@
     </main>
 
     <script type="module">
-        // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, push, onValue, set, get, child, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyACLjDV3KYxO2hW55KCsEUDouwFf9iCXpw",
-  authDomain: "physioconnect-ffa6a.firebaseapp.com",
-  databaseURL: "https://physioconnect-ffa6a-default-rtdb.firebaseio.com",
-  projectId: "physioconnect-ffa6a",
-  storageBucket: "physioconnect-ffa6a.firebasestorage.app",
-  messagingSenderId: "539307501202",
-  appId: "1:539307501202:web:47795db318b1f95d48684b",
-  measurementId: "G-17JL5VGEDB"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyACLjDV3KYxO2hW55KCsEUDouwFf9iCXpw",
+            authDomain: "physioconnect-ffa6a.firebaseapp.com",
+            databaseURL: "https://physioconnect-ffa6a-default-rtdb.firebaseio.com",
+            projectId: "physioconnect-ffa6a",
+            storageBucket: "physioconnect-ffa6a.firebasestorage.app",
+            messagingSenderId: "539307501202",
+            appId: "1:539307501202:web:47795db318b1f95d48684b"
+        };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        const citasRef = ref(database, 'citas');
 
         // --- SISTEMA DE AUTENTICACIÓN ---
         let isLoginMode = true;
@@ -167,14 +164,22 @@ const analytics = getAnalytics(app);
             authTitle.innerText = isLoginMode ? "Iniciar Sesión" : "Crear Cuenta Nueva";
             authButton.innerText = isLoginMode ? "Entrar" : "Registrarse";
             toggleBtn.innerText = isLoginMode ? "¿No tienes cuenta? Regístrate aquí" : "¿Ya tienes cuenta? Inicia sesión";
+            errorMsg.classList.add('hidden');
         });
 
         authForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-password').value;
-            const action = isLoginMode ? signInWithEmailAndPassword(auth, email, pass) : createUserWithEmailAndPassword(auth, email, pass);
-            action.catch(err => { errorMsg.innerText = "Error: " + err.message; errorMsg.classList.remove('hidden'); });
+            
+            const action = isLoginMode 
+                ? signInWithEmailAndPassword(auth, email, pass) 
+                : createUserWithEmailAndPassword(auth, email, pass);
+
+            action.catch(err => { 
+                errorMsg.innerText = "Error: " + err.message; 
+                errorMsg.classList.remove('hidden'); 
+            });
         });
 
         onAuthStateChanged(auth, (user) => {
@@ -228,6 +233,7 @@ const analytics = getAnalytics(app);
                 const d = snap.exists() ? snap.val() : {};
                 document.getElementById('historia-antecedentes').value = d.antecedentes || "";
                 document.getElementById('historia-alergias').value = d.alergias || "";
+                document.getElementById('historia-notas').value = d.ultimaNota || "";
                 showSection('historia-clinica');
             });
         };
@@ -240,7 +246,10 @@ const analytics = getAnalytics(app);
                 alergias: document.getElementById('historia-alergias').value,
                 ultimaNota: document.getElementById('historia-notas').value,
                 fecha: new Date().toISOString()
-            }).then(() => { alert("Expediente Actualizado"); showSection('agenda'); });
+            }).then(() => { 
+                alert("Expediente Actualizado"); 
+                showSection('agenda'); 
+            });
         });
 
         window.generarFactura = (p, s) => {
@@ -257,6 +266,3 @@ const analytics = getAnalytics(app);
     </script>
 </body>
 </html>
-
-
-
